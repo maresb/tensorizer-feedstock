@@ -50,9 +50,6 @@ tests:
           then:
             - redis-server
         - boto3
-      # Opened <https://github.com/coreweave/tensorizer/pull/183>
-      # to fix the underlying issue.
-        - numpy <2
     script:
     # Redis tests are flaky, sometimes failing with:
     #     redis.exceptions.ConnectionError: Error 111 connecting to localhost:6381.
