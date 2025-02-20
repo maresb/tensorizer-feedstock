@@ -1,13 +1,13 @@
 context:
-  version: 2.9.1
+  version: "2.9.2"
 
 package:
   name: tensorizer
   version: ${{ version }}
 
 source:
-- url: https://pypi.org/packages/source/t/tensorizer/tensorizer-${{ version }}.tar.gz
-  sha256: f79ac50d0a3bc328e3ee8cdf838ba04ddb5b9fa1d72be69f6ae618533d349e8e
+  - url: https://pypi.org/packages/source/t/tensorizer/tensorizer-${{ version }}.tar.gz
+    sha256: 973a69e9247ee393625850ef9152cd65acd163a60db39ca6edad376f503cffe5
 
 build:
   noarch: python
@@ -16,51 +16,51 @@ build:
 
 requirements:
   host:
-  - python ${{ python_min }}.*
-  - setuptools
-  - pip
+    - python ${{ python_min }}.*
+    - setuptools
+    - pip
   run:
-  - python >=${{ python_min }}
-  - pytorch >=1.9.0
-  - numpy >=1.19.5
-  - protobuf >=3.19.5
-  - psutil >=5.9.4
-  - boto3 >=1.26.0
-  - redis-py >=4.5.5
-  - hiredis >=2.2.0
-  - libnacl-python-bindings >=2.1.0
+    - python >=${{ python_min }}
+    - pytorch >=1.9.0
+    - numpy >=1.19.5
+    - protobuf >=3.19.5
+    - psutil >=5.9.4
+    - boto3 >=1.26.0
+    - redis-py >=4.5.5
+    - hiredis >=2.2.0
+    - libnacl-python-bindings >=2.1.0
 
 tests:
-- python:
-    imports:
-    - tensorizer
-    pip_check: true
-    python_version: ${{ python_min }}.*
-- files:
-    source:
-      - tests/
-  requirements:
-    run:
-      - pytest
-      - pytest-rerunfailures
-      - transformers >=4.27.1
-      - moto >=4.1.4,<5.0.0
-      - redis-py >=5.0.0
-      - if: not win
-        then:
-          - redis-server
-      - boto3
+  - python:
+      imports:
+        - tensorizer
+      pip_check: true
+      python_version: ${{ python_min }}.*
+  - files:
+      source:
+        - tests/
+    requirements:
+      run:
+        - pytest
+        - pytest-rerunfailures
+        - transformers >=4.27.1
+        - moto >=4.1.4,<5.0.0
+        - redis-py >=5.0.0
+        - if: not win
+          then:
+            - redis-server
+        - boto3
       # Opened <https://github.com/coreweave/tensorizer/pull/183>
       # to fix the underlying issue.
-      - numpy <2
-  script:
+        - numpy <2
+    script:
     # Redis tests are flaky, sometimes failing with:
     #     redis.exceptions.ConnectionError: Error 111 connecting to localhost:6381.
     #     Connection refused.
     # I suspect that there's not enough startup time, so we retry a few times.
-    - if: linux
-      then:
-        - pytest tests -vvv --reruns 2
+      - if: linux
+        then:
+          - pytest tests -vvv --reruns 2
     # Fails on macOS and Windows in test_cpu_multiple_readers
     # (test_serialization.TestDeserialization) with:
     #     ValueError: Cannot reopen this type of file to enable parallel reading with
@@ -70,25 +70,25 @@ tests:
     #     sockets) are not supported.
     # Unfortunately I don't know which type of file is being opened, but this doesn't
     # seem serious, so I'm skipping it.
-    - if: osx
-      then:
-        - |
-          pytest tests -vvv --reruns 2 \
-            --deselect tests/test_serialization.py::TestDeserialization::test_cpu_multiple_readers
+      - if: osx
+        then:
+          - |
+            pytest tests -vvv --reruns 2 \
+              --deselect tests/test_serialization.py::TestDeserialization::test_cpu_multiple_readers
     # In addition to the above, we don't have a Redis server on Windows.
     # Also, test_bfloat16 and test_structure fail with:
     #     PermissionError: [WinError 32] The process cannot access the file because it
     #     is being used by another process:
     #       'C:\\Users\\VSSADM~1\\AppData\\Local\\Temp\\tensorizer-testu78j78id'
-    - if: win
-      then:
-        - |
-          pytest tests -vvv ^
-            --deselect tests/test_serialization.py::TestDeserialization::test_cpu_multiple_readers ^
-            --deselect tests/test_serialization.py::TestDeserialization::test_redis ^
-            --deselect tests/test_stream_io.py::TestRedis::test_redis_stream ^
-            --deselect tests/test_serialization.py::TestSerialization::test_bfloat16 ^
-            --deselect tests/test_serialization.py::TestSerialization::test_structure
+      - if: win
+        then:
+          - |
+            pytest tests -vvv ^
+              --deselect tests/test_serialization.py::TestDeserialization::test_cpu_multiple_readers ^
+              --deselect tests/test_serialization.py::TestDeserialization::test_redis ^
+              --deselect tests/test_stream_io.py::TestRedis::test_redis_stream ^
+              --deselect tests/test_serialization.py::TestSerialization::test_bfloat16 ^
+              --deselect tests/test_serialization.py::TestSerialization::test_structure
 
 about:
   homepage: https://github.com/coreweave/tensorizer
